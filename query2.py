@@ -1,6 +1,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from transformers import AutoModelForQuestionAnswering, AutoTokenizer
+from transformers import BartForConditionalGeneration, BartTokenizer
 import chromadb
 import torch
 
@@ -23,24 +23,21 @@ def query_vector_database(query, chroma_path, collection_name):
 
     return results
 
-def generate_answer_with_llm(query, context_chunks, model_name="distilbert-base-uncased-distilled-squad"):
+def generate_answer_with_llm(query, context_chunks, model_name="facebook/bart-large-cnn"):
     # Load the LLM and tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
+    tokenizer = BartTokenizer.from_pretrained(model_name)
+    model = BartForConditionalGeneration.from_pretrained(model_name)
 
     # Prepare the input for the model
     context = " ".join([chunk for chunk in context_chunks if isinstance(chunk, str)])
-    inputs = tokenizer.encode_plus(query, context, add_special_tokens=True, return_tensors='pt', max_length=512, truncation=True)
-    input_ids = inputs['input_ids']
-    attention_mask = inputs['attention_mask']
+    input_text = f"Question: {query}\n\nContext: {context}"
+
+    # tokenize input
+    inputs = tokenizer(input_text, return_tensors='pt', max_length=512, truncation=True)
 
     # Generate the response
-    outputs = model(input_ids, attention_mask=attention_mask)
-    answer_start = torch.argmax(outputs.start_logits)
-    answer_end = torch.argmax(outputs.end_logits) + 1
-
-    # Decode the response
-    answer = tokenizer.decode(input_ids[0][answer_start:answer_end], skip_special_tokens=True)
+    summary_ids = model.generate(inputs['input_ids'], max_length=150, num_beams=2, early_stopping=True)
+    answer = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
     return answer
 
@@ -53,12 +50,6 @@ def main():
     results = query_vector_database(query, chroma_path, collection_name)
 
     print(results)
-    print(results['ids'])
-
-    for result in results:
-        print(result)
-
-    #results["metadatas"]
     
     # Extract the context chunks from the results
     context_chunks = [chunk for chunk in results["metadatas"]]
