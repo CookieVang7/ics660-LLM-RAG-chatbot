@@ -1,6 +1,6 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from transformers import BartForConditionalGeneration, BartTokenizer
+from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 import chromadb
 import torch
 
@@ -15,7 +15,7 @@ def query_vector_database(query, chroma_path, collection_name):
     # Initialize Chroma client
     chroma_client = chromadb.PersistentClient(path=chroma_path)
 
-    # Retrieve the collection of vector embeddings
+    # Retrieve the collection
     collection = chroma_client.get_or_create_collection(name=collection_name)
 
     # Query the collection
@@ -23,10 +23,10 @@ def query_vector_database(query, chroma_path, collection_name):
 
     return results
 
-def generate_answer_with_llm(query, context_chunks, model_name="facebook/bart-large-cnn"):
+def generate_answer_with_llm(query, context_chunks, model_name="bert-base-uncased"):
     # Load the LLM and tokenizer
-    tokenizer = BartTokenizer.from_pretrained(model_name)
-    model = BartForConditionalGeneration.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name)
 
     # Prepare the input for the model
     context = " ".join([chunk for chunk in context_chunks if isinstance(chunk, str)])
@@ -42,16 +42,20 @@ def generate_answer_with_llm(query, context_chunks, model_name="facebook/bart-la
     return answer
 
 def main():
+    #query = "What is Agile software development?"
     query = input("Enter a query about Agile: ")
     chroma_path = "C:\\Users\\cooki\\OneDrive\\Documents\\Metro State Stuff\\660-Master's Thesis\\ics660-LLM-RAG-chatbot\\chroma"
     collection_name = 'markdown_embeddings'
 
     # Query the vector database
-    # "results" returns: ids, distances, metadatas, embeddings, documents, uris, data, included
     results = query_vector_database(query, chroma_path, collection_name)
+
+    #print(results)
+    print('RESULTS DOCUMENT: ', results['documents'])
+    print('RESULTS METADATAS: ', results['metadatas'])
     
-    # Extract the context chunks from results["documents"][0] which holds all the k retrieved chunks
-    context_chunks = [chunk for chunk in results["documents"][0]]
+    # Extract the context chunks from the results
+    context_chunks = [chunk for chunk in results["metadatas"]]
 
     # Generate an answer with the LLM
     answer = generate_answer_with_llm(query, context_chunks)

@@ -10,22 +10,22 @@ def read_markdown_file(file_path):
     return text
 
 def main():
-    file_path = 'knowledge_base/root_article/Agile_software_development.md'
+    file_path = 'knowledge_base/root_article/Agile_software_development2.md'
     text = read_markdown_file(file_path)
 
-    # Step 1: Chunk the text using LangChain's text splitter
+    # Chunk the text using LangChain's text splitter
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     chunks = text_splitter.split_text(text)
 
-    # Step 2: Create embeddings using LangChain's HuggingFaceEmbeddings
+    # Create embeddings using LangChain's HuggingFaceEmbeddings
     model_name = 'sentence-transformers/all-MiniLM-L6-v2'  # Sentence-BERT model
     embeddings_model = HuggingFaceEmbeddings(model_name=model_name)
-
     embeddings = embeddings_model.embed_documents(chunks)
 
-    #Step 3: Store embeddings in Chroma
+    # Store embeddings in Chroma
     chroma_client = chromadb.PersistentClient(path="C:\\Users\\cooki\\OneDrive\\Documents\\Metro State Stuff\\660-Master's Thesis\\ics660-LLM-RAG-chatbot\\chroma")
 
+    # Giving the collection of embeddings a name so it can be used for querying later
     collection_name = 'markdown_embeddings'
     collection = chroma_client.get_or_create_collection(name=collection_name)
 
