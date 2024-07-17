@@ -1,3 +1,4 @@
+import streamlit as st
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 from transformers import BartForConditionalGeneration, BartTokenizer
@@ -42,17 +43,20 @@ def generate_answer_with_llm(query, context_chunks, conversation_history, model_
 
     return answer
 
-def main():
-    chroma_path = "C:\\Users\\cooki\\OneDrive\\Documents\\Metro State Stuff\\660-Master's Thesis\\ics660-LLM-RAG-chatbot\\chroma"
-    collection_name = 'markdown_embeddings'
-    
-    conversation_history = []
+# Streamlit UI
+st.title("Agile Chatbot")
 
-    while True:
-        query = input("Enter a query about Agile (or type 'quit' to exit): ")
-        if query.lower() == 'quit':
-            break
+chroma_path = "C:\\Users\\cooki\\OneDrive\\Documents\\Metro State Stuff\\660-Master's Thesis\\ics660-LLM-RAG-chatbot\\chroma"
+collection_name = 'markdown_embeddings'
 
+conversation_history = []
+
+query = st.text_input("Enter a query about Agile (type 'quit' to exit):")
+
+if query:
+    if query.lower() == 'quit':
+        st.write("Session ended.")
+    else:
         # Query the vector database
         results = query_vector_database(query, chroma_path, collection_name)
 
@@ -67,8 +71,9 @@ def main():
         if len(conversation_history) > 3:
             conversation_history.pop(0)  # Keep only the last 3 entries
 
-        print(f"Query: {query}")
-        print(f"Answer: {answer}")
+        # Display the conversation history
+        for q, a in conversation_history:
+            st.write(f"**User:** {q}")
+            st.write(f"**Assistant:** {a}")
 
-if __name__ == '__main__':
-    main()
+        st.write(f"**Answer:** {answer}")
