@@ -68,7 +68,6 @@ instance/
 # Chroma
 *.bin
 *.sqlite3
-*.md
 *.pickle
 
 # Scrapy stuff:
