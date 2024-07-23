@@ -7,3 +7,11 @@ This repo contains the source code for my master's thesis project, an LLM based 
 - LLM: ???
 - Vector database: Chroma DB
 - RAG mechanism: Langchain
+
+## Python libraries installed
+
+- transformers
+- requests
+- chromadb
+- streamlit
+- langchain
