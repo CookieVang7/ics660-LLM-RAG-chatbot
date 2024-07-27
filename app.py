@@ -1,8 +1,7 @@
 import streamlit as st
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from transformers import BartForConditionalGeneration, BartTokenizer, AutoTokenizer, Phi3ForCausalLM, AutoModelForCausalLM
-##from transformers import AutoTokenizer, Phi3ForCausalLM
+from transformers import BartForConditionalGeneration, BartTokenizer, AutoTokenizer, AutoModelForSeq2SeqLM
 import chromadb
 import torch
 from bert_score import score as bert_score
@@ -50,21 +49,46 @@ def generate_answer_with_llm1(query, context_chunks, conversation_history, model
 
     return answer
 
-def generate_answer_with_llm2(query, context_chunks, conversation_history, model_name="microsoft/Phi-3-mini-4k-instruct"):
-    tokenizer = AutoTokenizer.from_pretrained(model_name,trust_remote_code=True)
-    model = Phi3ForCausalLM.from_pretrained(model_name,trust_remote_code=True)
+def generate_answer_with_llm2(query, context_chunks, conversation_history, model_name="Falconsai/text_summarization"):
+    # Load the LLM and tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
 
     # Prepare the input for the model
     context = " ".join([chunk for chunk in context_chunks if isinstance(chunk, str)])
     history = " ".join([f"User: {q}\nAssistant: {a}" for q, a in conversation_history[-3:]])
-    input_text = f"{history}\nUser: {query}\n\nContext: {context}"
+    input_text = f"Context: {context}\n\n{history}\n\nUser: {query}\nAssistant:"
 
-    inputs = tokenizer(input_text ,return_tensors="pt")
+    # Tokenize input
+    inputs = tokenizer(input_text, return_tensors='pt', max_length=1024, truncation=True)
 
-    generate_ids = model.generate(inputs.input_ids, max_new_tokens=100, max_length=230)
-    answer = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+    # Generate the response
+    summary_ids = model.generate(inputs['input_ids'], max_new_tokens=100, num_beams=2, early_stopping=True)
+    answer = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
     return answer
+
+# def generate_answer_with_llm2(query, context_chunks, model_name="Falconsai/text_summarization"):
+#     # Load the LLM and tokenizer
+#     tokenizer = AutoTokenizer.from_pretrained(model_name)
+#     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+#     if tokenizer.pad_token is None:
+#         tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+#         model.resize_token_embeddings(len(tokenizer))
+
+#     # Prepare the input for the model
+#     context = " ".join([chunk for chunk in context_chunks if isinstance(chunk, str)])
+#     input_text = f"Question: {query}\n\nContext: {context}"
+
+#     # tokenize input
+#     inputs = tokenizer(input_text, return_tensors='pt', max_length=512, truncation=True)
+
+#     # Generate the response
+#     summary_ids = model.generate(inputs['input_ids'], max_length=150, num_beams=2, early_stopping=True)
+#     answer = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
+
+#     return answer
 
 def bertscore(candidates, references):
     P, R, F1 = bert_score(candidates, references, lang="en", verbose=True)
@@ -98,8 +122,8 @@ if query and reference_answer:
         context_chunks = [chunk for chunk in results["documents"][0]]
 
         # Generate an answer with the LLM
-        answer = generate_answer_with_llm1(query, context_chunks, conversation_history)
-        #answer = generate_answer_with_llm2(query, context_chunks, conversation_history)
+        #answer = generate_answer_with_llm1(query, context_chunks, conversation_history)
+        answer = generate_answer_with_llm2(query, context_chunks, conversation_history)
 
         # Update conversation history
         conversation_history.append((query, answer))

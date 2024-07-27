@@ -1,7 +1,8 @@
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from transformers import BartForConditionalGeneration, BartTokenizer
-from transformers import AutoTokenizer, AutoModelForCausalLM
+#from transformers import BartForConditionalGeneration, BartTokenizer
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+#AutoModelForCausalLM
 import chromadb
 import torch
 
@@ -28,10 +29,17 @@ def query_vector_database(query, chroma_path, collection_name):
 
     return results
 
-def generate_answer_with_llm(query, context_chunks, model_name="facebook/bart-large-cnn"):
+def generate_answer_with_llm(query, context_chunks, model_name="Falconsai/text_summarization"):
     # Load the LLM and tokenizer
-    tokenizer = BartTokenizer.from_pretrained(model_name)
-    model = BartForConditionalGeneration.from_pretrained(model_name)
+    # tokenizer = BartTokenizer.from_pretrained(model_name)
+    # model = BartForConditionalGeneration.from_pretrained(model_name)
+
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+
+    if tokenizer.pad_token is None:
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        model.resize_token_embeddings(len(tokenizer))
 
     # Prepare the input for the model
     context = " ".join([chunk for chunk in context_chunks if isinstance(chunk, str)])
@@ -45,42 +53,6 @@ def generate_answer_with_llm(query, context_chunks, model_name="facebook/bart-la
     answer = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
 
     return answer
-
-def ssa(query, response, model_name="microsoft/DialoGPT-medium"):
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-
-        # Add pad token if not already present
-    if tokenizer.pad_token is None:
-        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-        model.resize_token_embeddings(len(tokenizer))
-
-    evaluation_prompt = f"""
-    On a scale of 0 to 1 with 1 being the highest, give a score on the sensibility and specificity of the query and response
-
-    Query: {query}
-    Response: {response}
-    """
-
-    inputs = tokenizer(evaluation_prompt, return_tensors="pt", max_length=1024, truncation=True, padding = "max_length")
-    # if inputs['input_ids'].shape[1] > 1024:
-    #     inputs = tokenizer(evaluation_prompt, return_tensors="pt", max_length=1024, truncation=True)
-    attention_mask = inputs['input_ids'] != tokenizer.pad_token_id
-    print("Tokenized inputs:", inputs)
-
-    # Generate the response
-    outputs = model.generate(
-        inputs["input_ids"],
-        max_length=2048,
-        attention_mask=attention_mask,
-        num_beams=5,
-        no_repeat_ngram_size=2,
-        early_stopping=True,
-        pad_token_id=tokenizer.pad_token_id
-    )
-    print('OUTPUT: ', outputs)
-    evaluation = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    return evaluation
 
 def main():
     query = input("Enter a query about Agile: ")
@@ -96,10 +68,6 @@ def main():
 
     # Generate an answer with the LLM
     answer = generate_answer_with_llm(query, context_chunks)
-
-    evaluation = ssa(query,answer)
-    print('SSA RESPONSE')
-    print(evaluation)
 
     print(f"Query: {query}")
     print(f"Answer: {answer}")
