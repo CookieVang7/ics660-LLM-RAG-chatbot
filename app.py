@@ -38,8 +38,14 @@ def generate_answer_with_llm1(query, context_chunks, conversation_history, model
 
     # Prepare the input for the model
     context = " ".join([chunk for chunk in context_chunks if isinstance(chunk, str)])
-    history = " ".join([f"User: {q}\nAssistant: {a}" for q, a in conversation_history[-3:]])
-    input_text = f"Context: {context}\n\n{history}\n\nUser: {query}\nAssistant:"
+    input_text = f"Context: {context}\n\nUser: {query}\nAssistant:"
+
+
+    # history = " ".join([f"User: {q}\nAssistant: {a}" for q, a in conversation_history[-3:]])
+    # input_text = f"Context: {context}\n\nHistory: {history}\n\nUser: {query}\nAssistant:"
+
+    print('INPUT TEXT')
+    print(input_text)
 
     # Tokenize input
     inputs = tokenizer(input_text, return_tensors='pt', max_length=1024, truncation=True)
@@ -97,7 +103,7 @@ st.title("Agile Chatbot")
 chroma_path = "C:\\Users\\cooki\\OneDrive\\Documents\\Metro State Stuff\\660-Master's Thesis\\ics660-LLM-RAG-chatbot\\chroma"
 collection_name = 'markdown_embeddings'
 
-conversation_history = []
+conversation_history = [] # CONVERSATION HISTORY DOES NOT WORK!!!!!!!!!!!!!!! FIX THIS NEXT SEMESTER
 
 query = st.text_input("Enter a query about Agile (type 'quit' to exit):")
 reference_answer = st.text_input("Enter reference answer to query: ")
@@ -113,8 +119,8 @@ if query and reference_answer:
         context_chunks = [chunk for chunk in results["documents"][0]]
 
         # Generate an answer with the LLM
-        #answer = generate_answer_with_llm1(query, context_chunks, conversation_history)
-        answer = generate_answer_with_llm2(query, context_chunks, conversation_history)
+        answer = generate_answer_with_llm1(query, context_chunks, conversation_history)
+        #answer = generate_answer_with_llm2(query, context_chunks, conversation_history)
 
         # Update conversation history
         conversation_history.append((query, answer))
@@ -129,7 +135,7 @@ if query and reference_answer:
         if reference_answer:
             P, R, F1 = bertscore([answer], [reference_answer])
             rouge1_scores = rouge1([answer], [reference_answer])
-            st.write(f"BERTScore Precision: {P[0].item():.6f}")
-            st.write(f"BERTScore Recall: {R[0].item():.6f}")
+            #st.write(f"BERTScore Precision: {P[0].item():.6f}")
+            #st.write(f"BERTScore Recall: {R[0].item():.6f}")
             st.write(f"BERTScore F1: {F1[0].item():.6f}")
             st.write(f"ROUGE-1 F1 Score: {rouge1_scores[0]:.6f}")
