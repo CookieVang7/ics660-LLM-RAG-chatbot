@@ -65,6 +65,11 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# Chroma
+*.bin
+*.sqlite3
+*.pickle
+
 # Scrapy stuff:
 .scrapy
 
