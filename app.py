@@ -139,3 +139,6 @@ if query and reference_answer:
             #st.write(f"BERTScore Recall: {R[0].item():.6f}")
             st.write(f"BERTScore F1: {F1[0].item():.6f}")
             st.write(f"ROUGE-1 F1 Score: {rouge1_scores[0]:.6f}")
+
+
+# run app.py with 'streamlit run app.py'
