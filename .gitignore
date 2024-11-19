@@ -70,6 +70,48 @@ instance/
 *.sqlite3
 *.pickle
 
+# LLM stuff:
+*.cfg
+*.h
+activate
+*.bat
+*.ps1
+*.exe
+jsondiff
+jsonpatch
+jsonpointer
+pywin*
+*.cmd
+*.desktop
+*.svg
+*.png
+*.orig
+*.woff
+*.js
+*.woff2
+*.eot
+*.json
+*.LICENSE.txt
+*.ttf
+*.j2
+index.html
+*.css
+*.tpl
+*.map
+*.1
+EULA.txt
+license.txt
+ListDevices.txt
+*.nvi
+*.dll
+*.inf
+*.mof
+*.docx
+*.forms
+*.strings
+*.sys
+*.ico
+
 # Scrapy stuff:
 .scrapy
 
