@@ -8,7 +8,7 @@ Please note that the custom LLM currently does NOT work as intended.
 
 ## Architecture of Chatbot
 
-![My picture](ics660-LLM-RAG-chatbot/RAG%implementation.png)
+![](https://github.com/CookieVang7/ics660-LLM-RAG-chatbot/blob/main/RAG%20implementation.png?raw=true)
 
 ## Key Implementation Points of Architecture
 - Data Source: Wikipedia articles about Agile software development
