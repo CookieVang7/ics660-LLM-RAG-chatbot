@@ -1,17 +1,23 @@
 # ics660-LLM-RAG-chatbot
 
-This repo contains the source code for my master's thesis project, an LLM based chatbot using RAG.
+This repo contains the source code for my master's thesis project, an LLM based chatbot using RAG. In addition to using out-of-the-box LLMs, a custom LLM is created and used by the chatbot.
 
-## Tools
-- Data sources: Wikipedia articles about Agile software development
-- LLM: ???
+The custom LLM is based off of freeCodeCamp.org's video about creating an LLM from scratch: https://www.youtube.com/watch?v=UU1WVnMk4E8.
+
+Please note that the custom LLM currently does NOT work as intended.
+
+## Architecture of Chatbot
+
+![My picture](ics660-LLM-RAG-chatbot/RAG%implementation.png)
+
+## Key Implementation Points of Architecture
+- Data Source: Wikipedia articles about Agile software development
+- Chatbot UI: Streamlit (Python library)
+- Embedding Model: sentence-transformers/all-MiniLM-L6-v2
+- Out-of-the-box LLMs: facebook/bart-large-cnn and google/flan-t5-large
 - Vector database: Chroma DB
 - RAG mechanism: Langchain
 
-## Python libraries installed
+## Libraries and Dependencies
 
-- transformers
-- requests
-- chromadb
-- streamlit
-- langchain
+See requirements.txt
