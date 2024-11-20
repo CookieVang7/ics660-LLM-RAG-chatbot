@@ -84,7 +84,6 @@ pywin*
 *.cmd
 *.desktop
 *.svg
-*.png
 *.orig
 *.woff
 *.js
