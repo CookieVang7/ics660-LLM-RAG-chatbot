@@ -30,7 +30,7 @@ def query_vector_database(query, chroma_path, collection_name):
 
     return results
 
-def generate_answer_with_llm1(query, context_chunks, conversation_history, model_name="facebook/bart-large-cnn"): # summarization model
+def generate_answer_with_llm1(query, context_chunks, model_name="facebook/bart-large-cnn"): # summarization model
     # Load the LLM and tokenizer
     tokenizer = BartTokenizer.from_pretrained(model_name)
     model = BartForConditionalGeneration.from_pretrained(model_name)
