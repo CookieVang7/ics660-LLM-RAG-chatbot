@@ -71,15 +71,6 @@ class GPTLanguageModel(nn.Module):
         loss = F.cross_entropy(logits, targets)
         return logits, loss
 
-    # def generate(self, idx, max_new_tokens):
-    #     for _ in range(max_new_tokens):
-    #         logits, _ = self(idx)
-    #         logits = logits[:, -1, :]
-    #         probs = F.softmax(logits, dim=-1)
-    #         idx_next = torch.multinomial(probs, num_samples=1)
-    #         idx = torch.cat((idx, idx_next), dim=1)
-    #     return idx
-
     def generate(self, idx, max_new_tokens):
         # Ensure input is not longer than block_size
         if idx.shape[1] > block_size:
@@ -161,25 +152,6 @@ class FeedForward(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# # Initialize the model and optimizer
-# model = GPTLanguageModel(vocab_size, n_embd, n_head, n_layer).to(device)
-# optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate)
-
-# # Training loop
-# for iter in range(max_iters):
-#     xb, yb = get_batch('train')
-#     logits, loss = model(xb, yb)
-#     optimizer.zero_grad()
-#     loss.backward()
-#     optimizer.step()
-
-#     if iter % eval_interval == 0:
-#         print(f"Step {iter}, Loss: {loss.item()}")
-
-# # Save the trained model
-# torch.save(model.state_dict(), 'gpt_model.pth')
-# print("Model saved!")
-
 def load_trained_model():
     model = GPTLanguageModel(vocab_size,n_embd,n_head,n_layer).to(device)
     # loading trained weights
@@ -194,14 +166,19 @@ if __name__ == "__main__":
 
     # Training loop
     for iter in range(max_iters):
+        if iter % eval_interval == 0:
+            model.eval()
+            optimizer.zero_grad()
+            xb, yb = get_batch('validate')
+            logits, loss = model(xb, yb)
+            print(f"Step {iter}, Loss: {loss.item()}")
+            model.train()
+            continue
         xb, yb = get_batch('train')
         logits, loss = model(xb, yb)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
-        if iter % eval_interval == 0:
-            print(f"Step {iter}, Loss: {loss.item()}")
 
     # Save the trained model
     torch.save(model.state_dict(), 'gpt_model.pth')
